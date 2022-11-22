@@ -1,6 +1,7 @@
 package com.consulteer.webShop.model;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @Table(name = "user")
@@ -8,6 +9,8 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(nullable = false, unique = true)
+    private String username;
     @Column(nullable = false)
     private String firstName;
     @Column(nullable = false)
@@ -18,18 +21,24 @@ public class User {
     private String password;
     @OneToOne(cascade = CascadeType.ALL, mappedBy = "user")
     private Cart cart;
+    @ManyToOne
+    @JoinColumn(name = "role_id", referencedColumnName = "id")
+    private Role role;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
+    private Set<Order> orders;
 
     public User() {
     }
 
-    public User(Long id, String firstName, String lastName, String email, String password) {
+    public User(Long id, String username, String firstName, String lastName, String email, String password, Role role) {
         this.id = id;
+        this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
+        this.role = role;
     }
-
     public Long getId() {
         return id;
     }
@@ -76,5 +85,29 @@ public class User {
 
     public void setCart(Cart cart) {
         this.cart = cart;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public Set<Order> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(Set<Order> orders) {
+        this.orders = orders;
     }
 }

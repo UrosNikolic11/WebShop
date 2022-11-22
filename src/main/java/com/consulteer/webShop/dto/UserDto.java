@@ -1,4 +1,4 @@
 package com.consulteer.webShop.dto;
 
-public record UserDto(Long id, String firstName, String lastName, String email) {
+public record UserDto(Long id, String firstName, String lastName, String email, String role) {
 }

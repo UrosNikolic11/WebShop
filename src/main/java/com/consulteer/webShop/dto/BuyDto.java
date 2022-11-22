@@ -1,4 +1,15 @@
 package com.consulteer.webShop.dto;
 
-public record BuyDto(String message) {
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
+public record BuyDto(
+        @NotNull
+        Long cartId,
+        @NotBlank
+        String address,
+        @NotBlank
+        String number,
+        @NotBlank
+        String city) {
 }

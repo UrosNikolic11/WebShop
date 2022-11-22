@@ -1,21 +1,18 @@
 package com.consulteer.webShop.services.impl;
 
-import com.consulteer.webShop.dto.BuyDto;
-import com.consulteer.webShop.dto.CartEntryDto;
-import com.consulteer.webShop.dto.CartDto;
-import com.consulteer.webShop.dto.ShowProductDto;
+import com.consulteer.webShop.dto.*;
 import com.consulteer.webShop.exception.BadRequestException;
-import com.consulteer.webShop.model.Cart;
-import com.consulteer.webShop.model.CartEntry;
-import com.consulteer.webShop.model.CartProductPK;
-import com.consulteer.webShop.model.Product;
+import com.consulteer.webShop.model.*;
 import com.consulteer.webShop.repositories.CartEntryRepository;
+import com.consulteer.webShop.repositories.OrderEntryRepository;
+import com.consulteer.webShop.repositories.OrderRepository;
 import com.consulteer.webShop.repositories.ProductRepository;
 import com.consulteer.webShop.repositories.impl.CartRepositoryImpl;
 import com.consulteer.webShop.services.CartService;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -24,12 +21,16 @@ public class CartServiceImpl implements CartService {
     private final ProductRepository productRepository;
     private final CartRepositoryImpl cartRepository;
     private final CartEntryRepository cartEntryRepository;
+    private final OrderRepository orderRepository;
+    private final OrderEntryRepository orderEntryRepository;
 
     public CartServiceImpl(ProductRepository productRepository, CartRepositoryImpl cartRepository,
-                           CartEntryRepository cartEntryRepository) {
+                           CartEntryRepository cartEntryRepository, OrderRepository orderRepository, OrderEntryRepository orderEntryRepository) {
         this.productRepository = productRepository;
         this.cartRepository = cartRepository;
         this.cartEntryRepository = cartEntryRepository;
+        this.orderRepository = orderRepository;
+        this.orderEntryRepository = orderEntryRepository;
     }
 
     @Override
@@ -95,10 +96,42 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public BuyDto buy(Long id) {
-        Cart cart = cartRepository.findById(id).orElseThrow(() -> new BadRequestException("Cart with given id does not exist!"));
-        BuyDto buyDto = new BuyDto("Your bill is: " + cart.calculateTotalPrice());
-        cartEntryRepository.deleteAll(cart.getCartProducts());
-        return buyDto;
+    public BuyDtoResponse buy(BuyDto buyDto) {
+        Cart cart = cartRepository.findById(buyDto.cartId()).orElseThrow(() -> new BadRequestException("Cart with given id does not exist!"));
+
+        Set<CartEntry> products = cart.getCartProducts();
+
+        if(products.size() == 0){
+            throw new BadRequestException("Cart is empty");
+        }
+
+        Order order = new Order();
+        order.setAddress(buyDto.address());
+        order.setCity(buyDto.city());
+        order.setNumber(buyDto.number());
+        order.setTotalPrice(cart.calculateTotalPrice());
+        order.setUser(cart.getUser());
+        orderRepository.save(order);
+
+        products.forEach(cartEntry -> {
+            OrderEntry orderEntry = new OrderEntry();
+            orderEntry.setAmount(cartEntry.getAmount());
+            orderEntry.setOrder(order);
+            orderEntry.setProduct(cartEntry.getProduct());
+            orderEntry.setOrderProductPK(new OrderProductPK(order.getId(), cartEntry.getProduct().getId()));
+            orderEntryRepository.save(orderEntry);
+            Product product = cartEntry.getProduct();
+            product.setNumberInStock(product.getNumberInStock() - cartEntry.getAmount());
+            productRepository.save(product);
+        });
+
+        BuyDtoResponse buyDtoResponse = new BuyDtoResponse("Your bill is: " + cart.calculateTotalPrice());
+
+        products.forEach(cartEntry -> {
+            products.remove(cartEntry);
+            cartEntryRepository.delete(cartEntry);
+        });
+
+        return buyDtoResponse;
     }
 }

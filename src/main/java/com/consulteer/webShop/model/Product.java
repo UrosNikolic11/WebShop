@@ -1,6 +1,9 @@
 package com.consulteer.webShop.model;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 import javax.persistence.*;
+import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
 
@@ -16,9 +19,12 @@ public class Product {
     private Double price;
     @Column(nullable = false)
     private Integer numberInStock;
-
+    @CreationTimestamp
+    private Date createdAt;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "product")
     private Set<CartEntry> cartProducts;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "product")
+    private Set<OrderEntry> orderEntries;
 
     public Product() {
     }
@@ -60,6 +66,30 @@ public class Product {
 
     public void setNumberInStock(Integer numberInStock) {
         this.numberInStock = numberInStock;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Set<CartEntry> getCartProducts() {
+        return cartProducts;
+    }
+
+    public void setCartProducts(Set<CartEntry> cartProducts) {
+        this.cartProducts = cartProducts;
+    }
+
+    public Set<OrderEntry> getOrderEntries() {
+        return orderEntries;
+    }
+
+    public void setOrderEntries(Set<OrderEntry> orderEntries) {
+        this.orderEntries = orderEntries;
     }
 
     @Override

@@ -4,11 +4,13 @@ import com.consulteer.webShop.dto.*;
 import com.consulteer.webShop.services.CartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
 @RestController
+@PreAuthorize("hasRole('CUSTOMER')")
 @RequestMapping("/cart")
 public class CartController {
 
@@ -30,9 +32,9 @@ public class CartController {
         cartService.clearCart(id);
     }
 
-    @PostMapping("/{id}/buy")
-    public ResponseEntity<BuyDto> buy(@PathVariable("id") Long id) {
-        return new ResponseEntity<>(cartService.buy(id), HttpStatus.NO_CONTENT);
+    @PostMapping("/buy")
+    public ResponseEntity<BuyDtoResponse> buy(@RequestBody @Valid BuyDto buyDto) {
+        return new ResponseEntity<>(cartService.buy(buyDto), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")

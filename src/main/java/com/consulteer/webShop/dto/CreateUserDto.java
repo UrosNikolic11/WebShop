@@ -1,8 +1,11 @@
 package com.consulteer.webShop.dto;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 public final class CreateUserDto {
+    @NotBlank
+    private final String username;
     @NotBlank
     private final String firstName;
     @NotBlank
@@ -11,12 +14,16 @@ public final class CreateUserDto {
     private final String email;
     @NotBlank
     private final String password;
+    @NotNull
+    private final Long roleId;
 
-    public CreateUserDto(String firstName, String lastName, String email, String password) {
+    public CreateUserDto(String username, String firstName, String lastName, String email, String password, Long roleId) {
+        this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
+        this.roleId = roleId;
     }
 
     public String getFirstName() {
@@ -33,5 +40,13 @@ public final class CreateUserDto {
 
     public String getPassword() {
         return password;
+    }
+
+    public Long getRoleId() {
+        return roleId;
+    }
+
+    public String getUsername() {
+        return username;
     }
 }
